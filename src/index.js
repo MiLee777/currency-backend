@@ -1,13 +1,20 @@
 const express = require('express');
-const app = express();
 const cors = require('cors');
+const dotenv = require('dotenv');
 
-require('dotenv').config();
+dotenv.config();
 
+const connectDB = require('./config/db');
+const currencyRoutes = require('./currency/routes');
+
+const app = express();
 const PORT = 3000 || process.env.PORT;
 
-app.use(express.json());
+connectDB();
+
 app.use(cors());
+app.use(express.json());
+app.use('/api/v1', currencyRoutes);
 
 app.listen(PORT, () => {
   console.log(`Server running on port ${PORT}`);
