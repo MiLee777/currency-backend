@@ -1,1 +1,38 @@
-# currency-backend
+# Currency Backend
+Простой backend для получения курсов валют через API ЦБ РФ и хранения истории запросов.
+
+##  Стек технологий
+- Node.js
+- Express.js
+- MongoDB + Mongoose
+- Axios (для запросов к ЦБ РФ)
+- fast-xml-parser (для парсинга XML)
+- dotenv
+- CORS
+
+## Установка и запуск
+1. Клонируем репозиторий:
+
+`git clone https://github.com/MiLee777/currency-backend.git`
+
+`cd currency-backend`
+
+
+3. Устанавливаем зависимости:
+
+`npm install`
+
+
+5. Создаём .env файл:
+
+`PORT=3000`
+
+`MONGO_URI=your_mongodb_connection_string`
+
+
+7. Запуск сервера:
+
+`node src\index.js`
+
+
+Сервер будет доступен по адресу: http://localhost:3000
