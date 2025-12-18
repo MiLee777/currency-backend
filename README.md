@@ -18,19 +18,19 @@
 `cd currency-backend`
 
 
-3. Устанавливаем зависимости:
+2. Устанавливаем зависимости:
 
 `npm install`
 
 
-5. Создаём .env файл:
+3. Создаём .env файл:
 
 `PORT=3000`
 
 `MONGO_URI=your_mongodb_connection_string`
 
 
-7. Запуск сервера:
+4. Запуск сервера:
 
 `node src\index.js`
 
