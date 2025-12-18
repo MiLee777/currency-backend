@@ -23,12 +23,14 @@
 `npm install`
 
 
-3. Создаём .env файл:
+3. Переменные окружения:
+Создайте файл .env в корне проекта и добавьте в него:
 
 `PORT=3000`
 
-`MONGO_URI=your_mongodb_connection_string`
+`MONGO_URI=mongodb://localhost:27017/currency-db`
 
+> Файл .env добавлен в .gitignore и не хранится в репозитории.
 
 4. Запуск сервера:
 
