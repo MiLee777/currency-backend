@@ -68,8 +68,12 @@ class CurrencyClient {
    * @returns {Promise<RatesResponse>}
    */
 
-  
-  async getRatesWithPrevious(date = new Date()) {
+
+  async getRatesWithPrevious(date) {
+    if (!date) {
+      throw new Error('Date is required');
+    }
+
     const todayXml = await this.fetcher(CBR_URL + this.formatDate(date));
     const todayRates = this.parseRates(todayXml);
 
