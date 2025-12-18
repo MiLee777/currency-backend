@@ -1,75 +1,93 @@
-const axios = require('axios');
 const { XMLParser } = require('fast-xml-parser');
-
 const parser = new XMLParser();
+
 const CBR_URL = 'https://www.cbr.ru/scripts/XML_daily.asp?date_req=';
 
-const formatDate = (date) =>
-  date.toLocaleDateString('ru-RU');
+/**
+ * @typedef {Object} Rates
+ * @property {number} USD
+ * @property {number} EUR
+ * @property {number} CNY
+ */
 
-const parseRates = (xml) => {
-  const json = parser.parse(xml);
-  const valutes = json.ValCurs.Valute;
+/**
+ * @typedef {Object} RatesWithDate
+ * @property {string} date
+ * @property {Rates} rates
+ */
 
-  const getValue = (code) => {
-    const item = valutes.find(v => v.CharCode === code);
-    return parseFloat(item.Value.replace(',', '.'));
-  };
+/**
+ * @typedef {Object} RatesResponse
+ * @property {RatesWithDate} today
+ * @property {RatesWithDate} previous
+ */
 
-  return {
-    USD: getValue('USD'),
-    EUR: getValue('EUR'),
-    CNY: getValue('CNY'),
-  };
-};
-
-const getPreviousWorkDay = async (date) => {
-  let prevDate = new Date(date);
-
-  for (let i = 0; i < 7; i++) {
-    prevDate.setDate(prevDate.getDate() - 1);
-    try {
-      const res = await axios.get(
-        CBR_URL + formatDate(prevDate)
-      );
-      if (res.status === 200) return prevDate;
-    } catch {
-      continue;
-    }
+class CurrencyClient {
+  constructor(fetcher) {
+    this.fetcher = fetcher;
   }
 
-  throw new Error('Previous work day not found');
-};
+  formatDate(date) {
+    return date.toLocaleDateString('ru-RU');
+  }
 
-const getRatesWithPrevious = async () => {
-  const today = new Date();
+  parseRates(xml) {
+    const json = parser.parse(xml);
+    const valutes = json.ValCurs.Valute;
 
-  const todayResponse = await axios.get(
-    CBR_URL + formatDate(today)
-  );
+    const getValue = (code) => {
+      const item = valutes.find(v => v.CharCode === code);
+      return parseFloat(item.Value.replace(',', '.'));
+    };
 
-  const todayRates = parseRates(todayResponse.data);
+    return {
+      USD: getValue('USD'),
+      EUR: getValue('EUR'),
+      CNY: getValue('CNY'),
+    };
+  }
 
-  const prevDate = await getPreviousWorkDay(today);
+  async getPreviousWorkDay(date) {
+    let prevDate = new Date(date);
 
-  const prevResponse = await axios.get(
-    CBR_URL + formatDate(prevDate)
-  );
+    for (let i = 0; i < 7; i++) {
+      prevDate.setDate(prevDate.getDate() - 1);
+      try {
+        const xml = await this.fetcher(CBR_URL + this.formatDate(prevDate));
+        if (xml) return prevDate;
+      } catch {
+        continue;
+      }
+    }
 
-  const prevRates = parseRates(prevResponse.data);
+    throw new Error('Previous work day not found');
+  }
 
-  return {
-    today: {
-      date: formatDate(today),
-      rates: todayRates,
-    },
-    previous: {
-      date: formatDate(prevDate),
-      rates: prevRates,
-    },
-  };
-};
+  /**
+   * @param {Date} [date]
+   * @returns {Promise<RatesResponse>}
+   */
 
-module.exports = {
-  getRatesWithPrevious,
-};
+  
+  async getRatesWithPrevious(date = new Date()) {
+    const todayXml = await this.fetcher(CBR_URL + this.formatDate(date));
+    const todayRates = this.parseRates(todayXml);
+
+    const prevDate = await this.getPreviousWorkDay(date);
+    const prevXml = await this.fetcher(CBR_URL + this.formatDate(prevDate));
+    const prevRates = this.parseRates(prevXml);
+
+    return {
+      today: {
+        date: this.formatDate(date),
+        rates: todayRates,
+      },
+      previous: {
+        date: this.formatDate(prevDate),
+        rates: prevRates,
+      },
+    };
+  }
+}
+
+module.exports = { CurrencyClient };

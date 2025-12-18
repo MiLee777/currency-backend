@@ -1,7 +1,5 @@
 const CurrencyHistory = require('./model');
-const {
-  getRatesWithPrevious,
-} = require('./service');
+const currencyClient = require('./client');
 
 exports.getCurrency = async (req, res) => {
   try {
@@ -11,7 +9,12 @@ exports.getCurrency = async (req, res) => {
       });
     }
 
-    const data = await getRatesWithPrevious();
+    // const data = await getRatesWithPrevious();
+    const date = req.query.date
+      ? new Date(req.query.date)
+      : new Date();
+
+    const data = await currencyClient.getRatesWithPrevious(date);
 
     await CurrencyHistory.create({
       ip: req.ip,
